@@ -4,7 +4,7 @@
 
 | ID  | Title                                                                    | Expected Output                                     | Assignee    | Status   | Notes                                      |
 | :-: | :----------------------------------------------------------------------- | :-------------------------------------------------- | :---------- | :------- | :----------------------------------------- |
-| T1  | Initialize Vite + React + TS project                                     | Working project folder                              | User        | To Do    | Follow README setup                        |
+| T1  | Initialize Vite + React + TS project | Working project folder | User | ~~Done~~ | Confirmed via output & screenshot |                        |
 | T2  | Install & Configure Tailwind CSS                                         | Tailwind configured & base styles applied           | User        | To Do    | Follow README setup                        |
 | T3  | Set up Supabase project                                                  | Supabase project created on supabase.io             | User        | To Do    | Get URL and Anon Key                       |
 | T4  | Create `.env` file & add Supabase keys                                   | `.env` file populated                               | User        | To Do    | Follow README setup                        |
