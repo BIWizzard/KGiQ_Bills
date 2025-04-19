@@ -1,0 +1,132 @@
+# Product Requirements Document (PRD): KG iQ - Bills Tracker
+
+**Version:** 0.1
+**Date:** 2025-04-18
+**Author:** KG iQ AI Mentor (Draft)
+
+## 1. Introduction
+
+KG iQ - Bills Tracker is a web application designed to help individuals and families manage their finances by providing a clear visual timeline of income events (paychecks, direct deposits) and bill payments. Its core differentiator is the ability to intentionally allocate funds from specific income sources to specific bills, promoting conscious spending and better cash flow management. The application will feature a clean, interactive calendar as its central UI element.
+
+## 2. Goals
+
+* Provide users with a clear, visual representation of upcoming income and expenses on a calendar.
+* Enable users to easily track expected income and scheduled bill payments.
+* Facilitate intentional allocation of funds from specific income events to cover specific bills.
+* Track the remaining balance of income pools after allocations.
+* Simplify the management of recurring income and bills.
+* Allow tracking of partial or split bill payments.
+* Offer basic reporting on spending categories relative to income periods.
+* Serve as an effective learning project for full-stack development using React, Vite, Tailwind, Supabase, and Netlify.
+
+## 3. Target Audience
+
+* Individuals or families seeking better visibility and control over their cash flow timing.
+* Users who want to be more intentional about how specific income covers specific expenses.
+* Users comfortable with web applications for managing personal finances.
+
+## 4. Core Features (Functional Requirements)
+
+### 4.1 User Authentication
+
+* Users must be able to sign up, log in, and log out securely.
+* User data (income, bills, allocations) must be tied to their account and kept private.
+* (Tech: Supabase Auth - Email/Password initially).
+
+### 4.2 Central Calendar View
+
+* Display a monthly/weekly calendar view as the primary interface.
+* Visually differentiate income events and bill events on the calendar (e.g., color-coding, icons).
+* Allow users to navigate between months/weeks.
+* Clicking on a date could potentially initiate adding a new event for that date.
+* Clicking on an event should open a detail view or modal.
+* (Tech: `FullCalendar` React component).
+
+### 4.3 Income Event Management
+
+* Users can create new income events (Source, Expected Date, Expected Amount).
+* Users can mark income events as recurring (e.g., bi-weekly, monthly) with appropriate scheduling logic.
+* Users can view, edit, and delete income events.
+* System should track the total expected income within selected timeframes.
+* (Optional V1.1): Track actual deposit date and amount if different from expected.
+
+### 4.4 Bill Event Management
+
+* Users can create new bill events (Payee, Description (optional), Due Date, Amount Due, Payment Method (optional)).
+* Users can mark bill events as recurring (e.g., monthly, annually).
+* Users can view, edit, and delete bill events.
+
+### 4.5 Income Pool Tracking
+
+* The system calculates and displays the total amount of income received (or expected) within a period that has *not yet* been allocated to a bill.
+
+### 4.6 Allocation Mechanism
+
+* Users must be able to link specific bill events (or portions thereof) to specific income events.
+* When viewing an income event, users should see a list of bills allocated to it and the remaining unallocated amount from that specific income event.
+* When viewing a bill event, users should see which income event(s) are allocated to pay it.
+* The system must prevent over-allocation from a single income event.
+
+### 4.7 Split Payment Tracking
+
+* Users can record partial payments towards a bill.
+* The system must track the remaining amount due on a bill after partial payments.
+* The bill event on the calendar should visually indicate its status (Unpaid, Partially Paid, Paid).
+* Users should be able to schedule future partial payments if desired.
+
+### 4.8 Basic Reporting
+
+* (Stretch Goal for V1) Provide simple reports showing spending breakdown (categorized, if categories are added) per income event or time period (e.g., month).
+
+## 5. Non-Functional Requirements
+
+### 5.1 Technology Stack
+
+* Frontend: `React` (with `Vite`), `TypeScript`
+* Styling: `Tailwind CSS`
+* Backend & Database: `Supabase` (PostgreSQL, Auth, Realtime optional)
+* Deployment: `Netlify`
+
+### 5.2 Performance
+
+* The application should load quickly and interactions (rendering events, opening modals) should feel responsive. Database queries should be optimized.
+
+### 5.3 Security
+
+* User data must be secured via authentication. Sensitive keys (Supabase API keys) must not be exposed client-side inappropriately (use environment variables). Row Level Security (RLS) should be enabled in Supabase.
+
+### 5.4 Usability
+
+* The interface should be clean, intuitive, and easy to navigate. Minimal financial jargon. The calendar should be the clear focal point.
+
+### 5.5 Maintainability
+
+* Code should be well-organized, commented where necessary, and follow React best practices. TypeScript should be used for type safety.
+
+## 6. Design & UI/UX
+
+* Clean, modern aesthetic leveraging `Tailwind CSS` utility classes.
+* Adherence to KG iQ branding guidelines (colors, fonts, logo placement if applicable).
+* Focus on visual clarity for the calendar and event representation.
+* Responsive design for usability on different screen sizes (desktop focus initially).
+
+## 7. Release Criteria (MVP - Minimum Viable Product)
+
+* User Authentication (Signup, Login, Logout).
+* Basic Calendar display.
+* CRUD operations for Income Events (non-recurring only for MVP).
+* CRUD operations for Bill Events (non-recurring only for MVP).
+* Display income and bill events on the calendar.
+* **Initial** Allocation Mechanism: Ability to select an income event and link one or more bills to it, updating a simple "remaining balance" on the income event. (Detailed tracking/split payments can come later).
+* Basic display of unallocated income pool (sum of unallocated amounts from income events).
+
+## 8. Future Considerations
+
+* Advanced recurring event options (more complex rules).
+* Budget goal setting and tracking (e.g., 60/20/20 rule visualization).
+* More sophisticated reporting and data export.
+* Bill payment reminders/notifications.
+* Integration with financial APIs (e.g., Plaid) - *Significant complexity increase*.
+* Mobile-specific UI improvements or PWA features.
+* Event categorization and filtering.
+* Debt tracking/paydown tools.

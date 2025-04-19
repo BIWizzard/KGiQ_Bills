@@ -1,98 +1,54 @@
-# KG iQ - Bills Tracker
+# React + TypeScript + Vite
 
-A web application designed to help manage personal finances by visualizing income and bill payment schedules on a calendar and enabling intentional allocation of funds.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Overview
+Currently, two official plugins are available:
 
-KG iQ Bills Tracker helps you gain clarity on your cash flow. Instead of just knowing *what* bills are due, you can plan *which* income will cover *which* expenses. See your paychecks and bills side-by-side on a calendar, allocate funds intentionally, and track your spending against your income.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Features (Planned)
+## Expanding the ESLint configuration
 
-* Secure User Authentication
-* Interactive Calendar View (Monthly/Weekly)
-* Create, View, Edit, Delete Income Events (Recurring & Ad Hoc)
-* Create, View, Edit, Delete Bill Events (Recurring & Ad Hoc)
-* Allocate funds from specific Income Events to specific Bill Events
-* Track remaining balance on Income Events after allocation
-* Track Bill Payment Status (Unpaid, Partially Paid, Paid)
-* Support for Split/Partial Bill Payments
-* Basic Spending Reports (Future)
-* Budget Goal Tracking (Future)
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-## Tech Stack
+```js
+export default tseslint.config({
+  extends: [
+    // Remove ...tseslint.configs.recommended and replace with this
+    ...tseslint.configs.recommendedTypeChecked,
+    // Alternatively, use this for stricter rules
+    ...tseslint.configs.strictTypeChecked,
+    // Optionally, add this for stylistic rules
+    ...tseslint.configs.stylisticTypeChecked,
+  ],
+  languageOptions: {
+    // other options...
+    parserOptions: {
+      project: ['./tsconfig.node.json', './tsconfig.app.json'],
+      tsconfigRootDir: import.meta.dirname,
+    },
+  },
+})
+```
 
-* **Frontend:** React, Vite, TypeScript
-* **Styling:** Tailwind CSS
-* **Calendar:** FullCalendar (`@fullcalendar/react`)
-* **Backend/Database:** Supabase (PostgreSQL, Auth)
-* **Deployment:** Netlify
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-## Getting Started
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
-
-### Prerequisites
-
-* Node.js (v18 or later recommended)
-* npm or yarn
-* Git
-* A Supabase account ([supabase.io](https://supabase.io/))
-
-### Installation
-
-1.  **Clone the repository:**
-    ```bash
-    git clone <your-repository-url>
-    cd kgiq-bills-tracker
-    ```
-
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    # or
-    # yarn install
-    ```
-
-3.  **Set up Environment Variables:**
-    * Create a Supabase project if you haven't already.
-    * Find your Project URL and `anon` key in your Supabase project settings (API section).
-    * Make a copy of the example environment file:
-        ```bash
-        cp .env.example .env
-        ```
-    * Edit the `.env` file and add your Supabase credentials:
-        ```dotenv
-        VITE_SUPABASE_URL=YOUR_SUPABASE_URL
-        VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
-        ```
-    * **Important:** Ensure Row Level Security (RLS) is enabled on your Supabase tables once created.
-
-4.  **Set up Supabase Database:**
-    * Use the Supabase SQL editor or Table editor to create the necessary tables (e.g., `profiles`, `income_events`, `bill_events`, `payments`, `allocations`). Refer to the project documentation or initial migration scripts (once created) for the required schema.
-
-5.  **Run the development server:**
-    ```bash
-    npm run dev
-    # or
-    # yarn dev
-    ```
-    The application should now be running locally, typically at `http://localhost:5173`.
-
-## Deployment
-
-This project is set up for easy deployment via Netlify:
-
-1.  Connect your Git repository to Netlify.
-2.  Configure the build settings:
-    * **Build command:** `npm run build`
-    * **Publish directory:** `dist`
-3.  Add your Supabase environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) to the Netlify site's environment variables settings.
-4.  Trigger a deploy.
-
-## Contributing
-
-(Details TBD - Guidelines for contributing to the project will be added here)
-
-## License
-
-(Specify License - e.g., MIT)
+export default tseslint.config({
+  plugins: {
+    // Add the react-x and react-dom plugins
+    'react-x': reactX,
+    'react-dom': reactDom,
+  },
+  rules: {
+    // other rules...
+    // Enable its recommended typescript rules
+    ...reactX.configs['recommended-typescript'].rules,
+    ...reactDom.configs.recommended.rules,
+  },
+})
+```
