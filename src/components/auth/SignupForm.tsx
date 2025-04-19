@@ -1,5 +1,6 @@
 // src/components/auth/SignupForm.tsx
 import { useState } from 'react';
+import { Link } from 'react-router-dom'; // Import Link
 import { supabase } from '../../lib/supabaseClient';
 
 const SignupForm: React.FC = () => {
@@ -8,7 +9,7 @@ const SignupForm: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [message, setMessage] = useState<string>('');
-  const [error, setError] = useState<string>(''); // Separate error state
+  const [error, setError] = useState<string>('');
 
   const handleSignup = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -19,34 +20,24 @@ const SignupForm: React.FC = () => {
       setError('Passwords do not match.');
       return;
     }
+    // Add password strength check maybe later
 
     setLoading(true);
     try {
-      // Supabase handles email confirmation by default if enabled in your project settings
       const { data, error: signupError } = await supabase.auth.signUp({
         email: email,
         password: password,
-        // You can add options here, like redirect URLs or user metadata if needed
-        // options: {
-        //   emailRedirectTo: window.location.origin, 
-        // }
       });
 
       if (signupError) {
         setError(`Signup failed: ${signupError.message}`);
         console.error('Signup error:', signupError);
       } else if (data.user?.identities?.length === 0) {
-        // This might indicate the user already exists but isn't confirmed yet
-        // Supabase behavior might vary based on settings (e.g., auto-confirm)
         setError('Signup failed: Unable to create user. The email might already be registered.');
         console.error('Signup issue: User potentially exists but identities array is empty', data);
-      } else if (data.session || data.user) {
-        setMessage('Signup successful! Please check your email for a confirmation link if required.');
-        // Optionally clear form or redirect after a short delay
-        // setEmail(''); setPassword(''); setConfirmPassword(''); 
       } else {
-         // Handle cases where signup might require confirmation but doesn't return a session immediately
-         setMessage('Signup successful! Please check your email for a confirmation link if required.');
+         // Message depends on whether email confirmation is required in Supabase settings
+         setMessage('Signup successful! Check your email for a confirmation link if needed.');
       }
 
     } catch (catchError: any) {
@@ -87,7 +78,7 @@ const SignupForm: React.FC = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            minLength={6} // Supabase usually requires a minimum password length
+            minLength={6} 
             disabled={loading}
             className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-kg-blue/50 focus:border-kg-blue dark:bg-kg-ash2/50 dark:border-kg-ash/50 dark:text-kg-green2 dark:placeholder-kg-ash"
             placeholder="•••••••• (min. 6 characters)"
@@ -105,7 +96,7 @@ const SignupForm: React.FC = () => {
             required
             minLength={6}
             disabled={loading}
-            className={`w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-kg-blue/50 focus:border-kg-blue dark:bg-kg-ash2/50 dark:text-kg-green2 dark:placeholder-kg-ash ${password !== confirmPassword && confirmPassword ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-kg-ash/50'}`} // Highlight if mismatch
+            className={`w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-kg-blue/50 focus:border-kg-blue dark:bg-kg-ash2/50 dark:text-kg-green2 dark:placeholder-kg-ash ${password !== confirmPassword && confirmPassword ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-kg-ash/50'}`} 
             placeholder="••••••••"
           />
           {password !== confirmPassword && confirmPassword && (
@@ -116,7 +107,7 @@ const SignupForm: React.FC = () => {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={loading || (password !== confirmPassword && !!confirmPassword) || !password} // Disable if loading, mismatch, or no password
+          disabled={loading || (password !== confirmPassword && !!confirmPassword) || !password} 
           className="w-full bg-kg-blue hover:bg-opacity-90 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-kg-yellow focus:ring-offset-2 dark:focus:ring-offset-kg-gray disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Creating Account...' : 'Create Account'}
@@ -130,7 +121,15 @@ const SignupForm: React.FC = () => {
           <p className="mt-4 text-sm text-center text-red-600 dark:text-red-400">{error}</p>
         )}
       </form>
-       {/* TODO: Add link back to Login */}
+      
+      {/* Link to Login Page */}
+       <p className="mt-4 text-center text-sm text-gray-600 dark:text-kg-ash">
+          Already have an account?{' '}
+          <Link to="/login" className="font-medium text-kg-blue hover:underline dark:text-kg-yellow">
+            Log In
+          </Link>
+        </p>
+        
     </div>
   );
 };
