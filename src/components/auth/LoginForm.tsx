@@ -1,6 +1,7 @@
 // src/components/auth/LoginForm.tsx
-import React, { useState } from 'react';
-import { supabase } from '../../lib/supabaseClient'; // Import our Supabase client
+import { useState } from 'react';
+import { Link } from 'react-router-dom'; // Import Link
+import { supabase } from '../../lib/supabaseClient'; 
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -9,8 +10,8 @@ const LoginForm: React.FC = () => {
   const [message, setMessage] = useState<string>('');
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault(); // Prevent default form submission
-    setMessage(''); // Clear previous messages
+    event.preventDefault(); 
+    setMessage(''); 
     setLoading(true);
 
     try {
@@ -24,20 +25,18 @@ const LoginForm: React.FC = () => {
         console.error('Login error:', error);
       } else {
         setMessage('Login successful! Redirecting...');
-        // TODO: Handle successful login (e.g., redirect, update app state)
-        // For now, we just log success
         console.log('Login successful');
+        // App.tsx's onAuthStateChange will handle the state update
       }
     } catch (error: any) {
       setMessage(`An unexpected error occurred: ${error.message || 'Unknown error'}`);
       console.error('Unexpected login error:', error);
     } finally {
-      setLoading(false); // Stop loading indicator
+      setLoading(false); 
     }
   };
 
   return (
-    // Using dark:bg-kg-gray as discussed for content boxes
     <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded shadow-md dark:bg-kg-gray">
       <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800 dark:text-kg-green">
         Login
@@ -46,14 +45,14 @@ const LoginForm: React.FC = () => {
         {/* Email Input */}
         <div className="mb-4">
           <label 
-            htmlFor="email" 
+            htmlFor="login-email" // Changed id for uniqueness
             className="block text-sm font-medium text-gray-700 dark:text-kg-green2 mb-1"
           >
             Email Address
           </label>
           <input
             type="email"
-            id="email"
+            id="login-email" // Changed id
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -66,14 +65,14 @@ const LoginForm: React.FC = () => {
         {/* Password Input */}
         <div className="mb-6">
           <label 
-            htmlFor="password" 
+            htmlFor="login-password" // Changed id
             className="block text-sm font-medium text-gray-700 dark:text-kg-green2 mb-1"
           >
             Password
           </label>
           <input
             type="password"
-            id="password"
+            id="login-password" // Changed id
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -87,7 +86,6 @@ const LoginForm: React.FC = () => {
         <button
           type="submit"
           disabled={loading}
-          // Using kg-blue for button, yellow accent on hover/focus
           className="w-full bg-kg-blue hover:bg-opacity-90 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-kg-yellow focus:ring-offset-2 dark:focus:ring-offset-kg-gray disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Logging in...' : 'Login'}
@@ -100,8 +98,16 @@ const LoginForm: React.FC = () => {
           </p>
         )}
       </form>
-      {/* TODO: Add links for Signup / Password Reset later */}
-    </div>
+
+      {/* Link to Signup Page */}
+      <p className="mt-4 text-center text-sm text-gray-600 dark:text-kg-ash">
+        Don't have an account?{' '}
+        <Link to="/signup" className="font-medium text-kg-blue hover:underline dark:text-kg-yellow">
+          Sign Up
+        </Link>
+      </p>
+      
+    </div> 
   );
 };
 
