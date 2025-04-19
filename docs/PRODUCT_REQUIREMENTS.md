@@ -1,12 +1,12 @@
 # Product Requirements Document (PRD): KG iQ - Bills Tracker
 
-**Version:** 0.1
-**Date:** 2025-04-18
-**Author:** KG iQ AI Mentor (Draft)
+**Version:** 0.2
+**Date:** 2025-04-19
+**Author:** KG iQ Development Team
 
 ## 1. Introduction
 
-KG iQ - Bills Tracker is a web application designed to help individuals and families manage their finances by providing a clear visual timeline of income events (paychecks, direct deposits) and bill payments. Its core differentiator is the ability to intentionally allocate funds from specific income sources to specific bills, promoting conscious spending and better cash flow management. The application will feature a clean, interactive calendar as its central UI element.
+KG iQ - Bills Tracker is a web application designed to help individuals and families manage their finances by providing a clear visual timeline of income events (paychecks, direct deposits) and bill payments. Its core differentiator is the ability to intentionally allocate funds from specific income sources to specific bills, promoting conscious spending and better cash flow management. The application features a clean, interactive calendar as its central UI element.
 
 ## 2. Goals
 
@@ -41,6 +41,7 @@ KG iQ - Bills Tracker is a web application designed to help individuals and fami
 * Clicking on a date could potentially initiate adding a new event for that date.
 * Clicking on an event should open a detail view or modal.
 * (Tech: `FullCalendar` React component).
+* Visual indicators for bill payment status (unpaid, scheduled, paid).
 
 ### 4.3 Income Event Management
 
@@ -55,6 +56,8 @@ KG iQ - Bills Tracker is a web application designed to help individuals and fami
 * Users can create new bill events (Payee, Description (optional), Due Date, Amount Due, Payment Method (optional)).
 * Users can mark bill events as recurring (e.g., monthly, annually).
 * Users can view, edit, and delete bill events.
+* System tracks bill status (unpaid, scheduled, partially paid, paid).
+* System tracks remaining balance for bills that are partially paid.
 
 ### 4.5 Income Pool Tracking
 
@@ -66,6 +69,8 @@ KG iQ - Bills Tracker is a web application designed to help individuals and fami
 * When viewing an income event, users should see a list of bills allocated to it and the remaining unallocated amount from that specific income event.
 * When viewing a bill event, users should see which income event(s) are allocated to pay it.
 * The system must prevent over-allocation from a single income event.
+* Support for partial allocations to a bill, maintaining the remaining balance.
+* Bill status automatically updates based on allocation amounts (scheduled when partially allocated, paid when fully allocated).
 
 ### 4.7 Split Payment Tracking
 
@@ -90,6 +95,7 @@ KG iQ - Bills Tracker is a web application designed to help individuals and fami
 ### 5.2 Performance
 
 * The application should load quickly and interactions (rendering events, opening modals) should feel responsive. Database queries should be optimized.
+* Minimize forced reflows and unnecessary re-renders to improve UI performance.
 
 ### 5.3 Security
 
@@ -102,6 +108,7 @@ KG iQ - Bills Tracker is a web application designed to help individuals and fami
 ### 5.5 Maintainability
 
 * Code should be well-organized, commented where necessary, and follow React best practices. TypeScript should be used for type safety.
+* Shared types should be centralized in a types directory to ensure consistency across components.
 
 ## 6. Design & UI/UX
 
@@ -109,6 +116,7 @@ KG iQ - Bills Tracker is a web application designed to help individuals and fami
 * Adherence to KG iQ branding guidelines (colors, fonts, logo placement if applicable).
 * Focus on visual clarity for the calendar and event representation.
 * Responsive design for usability on different screen sizes (desktop focus initially).
+* Clear visual indicators for different bill statuses (unpaid, scheduled, paid).
 
 ## 7. Release Criteria (MVP - Minimum Viable Product)
 
@@ -117,8 +125,10 @@ KG iQ - Bills Tracker is a web application designed to help individuals and fami
 * CRUD operations for Income Events (non-recurring only for MVP).
 * CRUD operations for Bill Events (non-recurring only for MVP).
 * Display income and bill events on the calendar.
-* **Initial** Allocation Mechanism: Ability to select an income event and link one or more bills to it, updating a simple "remaining balance" on the income event. (Detailed tracking/split payments can come later).
+* Allocation Mechanism: Ability to select a bill event and allocate income to it, with support for partial payments.
+* Visual indicators for bill payment status on the calendar.
 * Basic display of unallocated income pool (sum of unallocated amounts from income events).
+* Financial summary dashboard showing income, bills, allocations and coverage.
 
 ## 8. Future Considerations
 
@@ -130,3 +140,26 @@ KG iQ - Bills Tracker is a web application designed to help individuals and fami
 * Mobile-specific UI improvements or PWA features.
 * Event categorization and filtering.
 * Debt tracking/paydown tools.
+* Calendar filtering options (by date range, payment status, etc.).
+* Full allocation management dashboard with filtering and sorting options.
+* Customizable bill statuses beyond the default (unpaid, scheduled, paid).
+
+## 9. Development Roadmap & Status
+
+### Completed Features:
+* User Authentication
+* Basic Calendar View
+* Income Event Creation
+* Bill Event Creation
+* Basic Allocation Mechanism
+
+### In Progress:
+* Enhanced Allocation System with Split Payment Support
+* Visual Status Indicators for Bill Events
+
+### Backlog:
+* Full Allocation Management Dashboard
+* Event Filtering and Search
+* Recurring Events
+* Budget Categorization
+* Reporting and Analytics
