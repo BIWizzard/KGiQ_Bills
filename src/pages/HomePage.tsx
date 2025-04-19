@@ -1,49 +1,29 @@
-// src/pages/HomePage.tsx
-import { useState, useEffect } from 'react';
-import { Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabaseClient'; // Adjust path if needed
+// src/pages/HomePage.tsx (Simplified)
+import { useEffect, useState } from 'react'; // Keep useState if needed for other page state
+import { supabase } from '../lib/supabaseClient';
 
 const HomePage = () => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  // We get the session info directly now, assuming ProtectedRoute ensures it exists
+  // We might fetch session again or use a context later if needed for display
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    }).catch(error => {
-        console.error("Error getting initial session in HomePage:", error);
-        setLoading(false);
-    });
+    // Fetch user email on component mount (since we know we are logged in)
+    const fetchUser = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        setCurrentUserEmail(user?.email);
+    };
+    fetchUser();
+  },[])
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    // Cleanup listener
-    return () => subscription.unsubscribe();
-  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    // The listener above will set session to null, triggering re-render
+    // No need to set session state here, ProtectedRoute will redirect
   };
 
-  if (loading) {
-    return <div className="text-center p-4 dark:text-kg-green2">Loading session...</div>;
-  }
+  // No need for loading or !session checks here anymore
 
-  if (!session) {
-    // If no session, user shouldn't be here. 
-    // Later, a Protected Route will handle redirection automatically.
-    // For now, we can show a message or return null.
-    return <div className="text-center p-4 text-red-600 dark:text-red-400">You must be logged in to view this page.</div>; 
-    // Or maybe: navigate('/login'); // Requires useNavigate hook from react-router-dom
-  }
-
-  // If session exists, show the welcome content
   return (
     <div className="bg-white p-6 rounded shadow dark:bg-kg-gray">
       <div className="flex justify-between items-center mb-4">
@@ -57,10 +37,14 @@ const HomePage = () => {
           Logout
         </button>
       </div>
-      <p className="mb-2 text-gray-700 dark:text-kg-green2">User ID: {session.user.id}</p>
-      <p className="mb-2 text-gray-700 dark:text-kg-green2">Email: {session.user.email}</p>
+      {currentUserEmail ? (
+         <p className="mb-2 text-gray-700 dark:text-kg-green2">Logged in as: {currentUserEmail}</p>
+      ): (
+         <p className="mb-2 text-gray-700 dark:text-kg-green2">Loading user info...</p>
+      )}
+
       <p className="mt-4 text-sm text-gray-500 dark:text-kg-gray">
-        (This is where the main application content, like the calendar, will eventually go.)
+        (The main application content, like the calendar, goes here.)
       </p>
     </div>
   );

@@ -1,31 +1,29 @@
-// src/App.tsx (Updated for Basic Routing)
-import { Routes, Route } from 'react-router-dom'; // Import routing components
+// src/App.tsx (Updated to use ProtectedRoute)
+import { Routes, Route } from 'react-router-dom'; // Removed Outlet
 import Layout from './components/layout/Layout';
-import HomePage from './pages/HomePage'; // Import Page components
+import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import ProtectedRoute from './components/auth/ProtectedRoute'; // Import ProtectedRoute
 
 function App() {
-  // Authentication state logic (useState, useEffect, handleLogout) is now moved to HomePage.tsx
-  // App.tsx now primarily handles layout and routing structure.
 
   return (
     <Layout>
-      {/* --- Routes define which page component renders based on the URL --- */}
       <Routes>
-        {/* Route for the homepage (path="/") */}
-        <Route path="/" element={<HomePage />} />
-
-        {/* Route for the login page (path="/login") */}
+        {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
-
-        {/* Route for the signup page (path="/signup") */}
         <Route path="/signup" element={<SignupPage />} />
 
-        {/* TODO: Add a 404 Not Found route later */}
-        {/* <Route path="*" element={<NotFoundPage />} /> */}
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}> {/* Wrap protected routes */}
+          <Route path="/" element={<HomePage />} />
+          {/* Add other protected routes here later inside this wrapper */}
+          {/* e.g., <Route path="/dashboard" element={<DashboardPage />} /> */}
+        </Route>
+
+        {/* TODO: Add a 404 Not Found route */}
       </Routes>
-      {/* --- End Routes --- */}
     </Layout>
   );
 }
