@@ -1,14 +1,15 @@
-// src/components/calendar/CalendarView.tsx (Simplified Floating UI + FC Event Props)
-import { useState, useEffect } from 'react';
+// src/components/calendar/CalendarView.tsx (Updated with onAllocationChange)
+import React, { useState, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
-// Import types from FullCalendar - EventApi is key, EventHoveringArg might be useful again
-import { EventInput, EventApi, EventHoveringArg } from '@fullcalendar/core';
+// Import types from FullCalendar
+import { EventInput, EventApi, EventHoveringArg, EventClickArg } from '@fullcalendar/core';
 import { supabase } from '../../lib/supabaseClient';
 import IncomeEventCard from '../cards/IncomeEventCard';
 import BillEventCard from '../cards/BillEventCard';
+import AllocationModal from '../modals/AllocationModal';
 
-// Import Floating UI hooks and utils - JUST useFloating and Portal now
+// Import Floating UI hooks and utils
 import {
     useFloating,
     FloatingPortal,
@@ -21,54 +22,105 @@ import {
 interface IncomeEvent { id: string; source: string; expected_date: string; expected_amount: number; notes?: string | null; }
 interface BillEvent { id: string; payee: string; due_date: string; amount_due: number; description?: string | null; payment_method?: string | null; notes?: string | null; }
 
-// Helper function
-const formatCurrency = (amount: number): string => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+// Define props for the component
+interface CalendarViewProps {
+    onAllocationChange?: () => void;
+}
 
 const CARD_OFFSET = 10;
 
-const CalendarView: React.FC = () => {
+const CalendarView: React.FC<CalendarViewProps> = ({ onAllocationChange }) => {
     const [events, setEvents] = useState<EventInput[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    // State for hover card - simplified
+    // State for hover card
     const [hoveredEventData, setHoveredEventData] = useState<EventApi | null>(null);
 
-    // Setup Floating UI - simplified: no open state management needed here
+    // State for allocation modal
+    const [isAllocationModalOpen, setIsAllocationModalOpen] = useState<boolean>(false);
+    const [selectedBillEvent, setSelectedBillEvent] = useState<BillEvent | null>(null);
+
+    // Setup Floating UI for hover cards
     const { refs, floatingStyles, update } = useFloating({
-        // Keep placement and middleware
         placement: 'bottom-start',
         middleware: [ offset(CARD_OFFSET), flip({ padding: 10 }), shift({ padding: 10 }) ],
-        // Remove open/onOpenChange - we control via hoveredEventData
-        // whileElementsMounted: autoUpdate, // Option for auto-updates if needed
     });
 
-    // Fetching logic remains the same...
-    useEffect(() => {
-        const fetchEvents = async () => {
-           setLoading(true); setError(null);
-           try {
-               /* ... (same fetching code as before) ... */
-               const { data: { user }, error: userError } = await supabase.auth.getUser();
-               if (userError || !user) throw new Error(userError?.message || 'User not authenticated');
-               const userId = user.id;
-               const { data: incomeData, error: incomeError } = await supabase.from('income_events').select('id, source, expected_date, expected_amount, notes').eq('user_id', userId);
-               if (incomeError) throw incomeError;
-               const { data: billData, error: billError } = await supabase.from('bill_events').select('id, payee, due_date, amount_due, description, payment_method, notes').eq('user_id', userId);
-               if (billError) throw billError;
-               const formattedIncomeEvents: EventInput[] = (incomeData || []).map((event: IncomeEvent) => ({ id: `income-${event.id}`, title: `+${formatCurrency(event.expected_amount)} (${event.source})`, start: event.expected_date, backgroundColor: '#c5e6a6', borderColor: '#bdd2a6', textColor: '#304c72', extendedProps: { type: 'income', ...event } }));
-               const formattedBillEvents: EventInput[] = (billData || []).map((event: BillEvent) => ({ id: `bill-${event.id}`, title: `-${formatCurrency(event.amount_due)} (${event.payee})`, start: event.due_date, backgroundColor: '#733041', borderColor: '#5f2735', textColor: '#ffffff', extendedProps: { type: 'bill', ...event } }));
-               setEvents([...formattedIncomeEvents, ...formattedBillEvents]);
-           } catch (error: unknown) {
-               console.error('Error fetching calendar events:', error); let errorMessage = 'An unknown error occurred'; if (error instanceof Error) errorMessage = error.message; else if (typeof error === 'string') errorMessage = error; setError(`Failed to load events: ${errorMessage}`);
-           } finally { setLoading(false); }
+    // Use React.useMemo to avoid recalculations
+    const formatCurrencyMemo = React.useMemo(() => {
+        return (amount: number): string => {
+            return new Intl.NumberFormat('en-US', { 
+                style: 'currency', 
+                currency: 'USD' 
+            }).format(amount);
         };
-        fetchEvents();
     }, []);
 
+    // Function to fetch events (extracted from useEffect for reusability)
+    const fetchEvents = async () => {
+        setLoading(true); 
+        setError(null);
+        try {
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError || !user) throw new Error(userError?.message || 'User not authenticated');
+            const userId = user.id;
+            
+            // Fetch income events
+            const { data: incomeData, error: incomeError } = await supabase
+                .from('income_events')
+                .select('id, source, expected_date, expected_amount, notes')
+                .eq('user_id', userId);
+            if (incomeError) throw incomeError;
+            
+            // Fetch bill events
+            const { data: billData, error: billError } = await supabase
+                .from('bill_events')
+                .select('id, payee, due_date, amount_due, description, payment_method, notes')
+                .eq('user_id', userId);
+            if (billError) throw billError;
+            
+            // Format events for FullCalendar
+            const formattedIncomeEvents: EventInput[] = (incomeData || []).map((event: IncomeEvent) => ({ 
+                id: `income-${event.id}`, 
+                title: `+${formatCurrencyMemo(event.expected_amount)} (${event.source})`, 
+                start: event.expected_date, 
+                backgroundColor: '#c5e6a6', 
+                borderColor: '#bdd2a6', 
+                textColor: '#304c72', 
+                extendedProps: { type: 'income', ...event } 
+            }));
+            
+            const formattedBillEvents: EventInput[] = (billData || []).map((event: BillEvent) => ({ 
+                id: `bill-${event.id}`, 
+                title: `-${formatCurrencyMemo(event.amount_due)} (${event.payee})`, 
+                start: event.due_date, 
+                backgroundColor: '#733041', 
+                borderColor: '#5f2735', 
+                textColor: '#ffffff', 
+                extendedProps: { type: 'bill', ...event } 
+            }));
+            
+            setEvents([...formattedIncomeEvents, ...formattedBillEvents]);
+        } catch (error: unknown) {
+            console.error('Error fetching calendar events:', error); 
+            let errorMessage = 'An unknown error occurred'; 
+            if (error instanceof Error) errorMessage = error.message; 
+            else if (typeof error === 'string') errorMessage = error; 
+            setError(`Failed to load events: ${errorMessage}`);
+        } finally { 
+            setLoading(false); 
+        }
+    };
+    
+    // Modified useEffect to use the extracted fetchEvents function
+    useEffect(() => {
+        fetchEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    // --- Handlers using FullCalendar Props ---
-    const handleMouseEnter = (info: EventHoveringArg) => { // Use EventHoveringArg type again
+    // --- Handlers for hover functionality ---
+    const handleMouseEnter = (info: EventHoveringArg) => {
         refs.setReference(info.el);      // Set reference for Floating UI
         setHoveredEventData(info.event); // Set the event data to show
         update();                        // Tell Floating UI to calculate position
@@ -78,11 +130,59 @@ const CalendarView: React.FC = () => {
         refs.setReference(null);       // Clear reference
         setHoveredEventData(null);     // Clear data to hide card
     };
-    // --- End Handlers ---
 
+    // --- Handler for click events (for allocation) ---
+    const handleEventClick = (info: EventClickArg) => {
+        // Only handle bill events for allocation
+        if (info.event.extendedProps?.type === 'bill') {
+            // Extract the bill event data from extendedProps
+            const billEventData = info.event.extendedProps as BillEvent;
+            setSelectedBillEvent(billEventData);
+            setIsAllocationModalOpen(true);
+        }
+        
+        // For income events, we could do something else, or nothing
+        // e.g., show a different modal with income details
+    };
 
-    if (loading) { /* ... loading ... */ }
-    if (error) { /* ... error ... */ }
+    // Handle allocation modal close
+    const handleAllocationModalClose = () => {
+        setIsAllocationModalOpen(false);
+        setSelectedBillEvent(null);
+        
+        // After closing the modal, refresh the calendar data
+        // to reflect any new allocations
+        fetchEvents();
+        
+        // Call the parent's onAllocationChange callback if provided
+        if (onAllocationChange) {
+            onAllocationChange();
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="bg-white p-8 rounded shadow dark:bg-kg-gray text-center">
+                <p className="text-gray-600 dark:text-kg-green2">Loading calendar events...</p>
+            </div>
+        );
+    }
+    
+    if (error) {
+        return (
+            <div className="bg-white p-8 rounded shadow dark:bg-kg-gray">
+                <div className="text-red-600 dark:text-red-400 mb-4">
+                    <p>{error}</p>
+                </div>
+                <button 
+                    onClick={fetchEvents}
+                    className="px-4 py-2 bg-kg-blue text-white rounded hover:bg-opacity-90"
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white p-4 rounded shadow dark:bg-kg-gray">
@@ -100,9 +200,10 @@ const CalendarView: React.FC = () => {
                 // --- Use FullCalendar's direct event handlers ---
                 eventMouseEnter={handleMouseEnter}
                 eventMouseLeave={handleMouseLeave}
+                eventClick={handleEventClick} // Add click handler for allocation
             />
 
-            {/* Use FloatingPortal */}
+            {/* Use FloatingPortal for hover cards */}
             <FloatingPortal>
                 {/* Render card only if hoveredEventData exists */}
                 {hoveredEventData && (
@@ -121,6 +222,13 @@ const CalendarView: React.FC = () => {
                     </div>
                 )}
             </FloatingPortal>
+            
+            {/* Allocation Modal */}
+            <AllocationModal 
+                isOpen={isAllocationModalOpen}
+                onClose={handleAllocationModalClose}
+                billEvent={selectedBillEvent}
+            />
         </div>
     );
 };
