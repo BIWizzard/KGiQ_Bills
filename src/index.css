@@ -3,74 +3,40 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Your other global styles can go below */
+/* Most default Vite styles below are removed because 
+  Tailwind's 'preflight' handles base resets and we will 
+  use utility classes or the @layer directive for styling.
+*/
 
+/* Define base styles using @layer */
+@layer base {
+  body {
+    /* Define light mode defaults if needed (Tailwind's defaults are often fine) */
+    /* Example: @apply bg-white text-gray-900; */
 
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+    /* Dark Mode using KG colors (based on OS preference via tailwind.config.js) */
+    /* Using ash2 for background, green2 for primary text */
+    @apply dark:bg-kg-ash2 dark:text-kg-green2; 
+    
+    /* Apply base sans-serif font defined in tailwind.config.js */
+    @apply font-sans;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+    /* Ensure body takes full height for flex layout in Layout.tsx */
+    @apply min-h-screen; 
   }
-  a:hover {
-    color: #747bff;
+
+  /* Optional: Style headings differently in dark mode */
+  h1, h2, h3, h4, h5, h6 {
+     /* Using the brighter kg-green for dark headings */
+     @apply dark:text-kg-green;
+     /* You might want to add light mode heading colors here too if needed */
+     /* Example: @apply text-gray-900; */
   }
-  button {
-    background-color: #f9f9f9;
-  }
+
+  /* Optional: Define base link styling if desired */
+  /* a { */
+    /* @apply text-kg-blue dark:text-kg-yellow underline; */
+  /* } */
 }
+
+/* Your other custom global CSS classes or overrides can go below */
