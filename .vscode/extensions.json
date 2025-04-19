@@ -1,0 +1,17 @@
+{
+    "recommendations": [
+        // Core Language & Formatting
+        "dbaeumer.vscode-eslint",         // ESLint - For code quality and style rules
+        "esbenp.prettier-vscode",         // Prettier - Code formatter
+        "VisualStudioExptTeam.vscodeintellicode", // AI-assisted IntelliSense
+
+        // Framework & Styling Specific
+        "bradlc.vscode-tailwindcss",      // Tailwind CSS IntelliSense, linting, preview
+        "formulahendry.auto-rename-tag",  // Automatically rename paired HTML/JSX tags
+
+        // Backend Specific (Optional but helpful)
+        "supabase.supabase-vscode"        // Official Supabase integration
+
+        // Add any other extensions you find essential for your workflow
+    ]
+}
