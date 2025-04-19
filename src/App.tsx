@@ -1,35 +1,27 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.tsx (Corrected Version)
+import Layout from './components/layout/Layout'; // Import the Layout component
 
 function App() {
-  const [count, setCount] = useState(0)
+  // We removed the default useState counter and related functions from Vite starter
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
+    <Layout>
+      {/* --- Content for the main area goes INSIDE the Layout component --- */}
+
+      <div className="bg-white p-6 rounded shadow dark:bg-slate-800"> {/* Added dark background for content box */}
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-kg-green">Application Content Area</h2> {/* Adjusted text colors */}
+        <p className="mb-2 text-gray-700 dark:text-kg-green2">The main content for each page will be rendered here.</p>
+        <p className="mb-2 text-gray-700 dark:text-kg-green2">Right now, this is just placeholder text in App.tsx.</p>
+        <p className="mt-4 text-sm text-gray-500 dark:text-kg-gray">
+          (Later, React Router will manage swapping components in this area based on the URL).
         </p>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+
+      {/* You could add other components here later if needed outside the main white box */}
+
+      {/* --- End Content --- */}
+    </Layout>
+  );
 }
 
-export default App
+export default App;
