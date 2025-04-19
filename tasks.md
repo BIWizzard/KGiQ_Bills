@@ -1,27 +1,30 @@
 # KG iQ Bills Tracker - Task List
 
-**Date:** 2025-04-18 (End of Session Update)
+**Date:** 2025-04-19 (End of Session 2 Update)
 
-| ID  | Title                                                                    | Expected Output                                     | Assignee    | Status     | Notes                                                         |
-| :-: | :----------------------------------------------------------------------- | :-------------------------------------------------- | :---------- | :--------- | :------------------------------------------------------------ |
-| T1  | ~~Initialize Vite + React + TS project~~                                 | Working project folder                              | User        | `~~Done~~` | Completed on Mac & Windows                                    |
-| T2  | ~~Install & Configure Tailwind CSS~~                                     | Tailwind v3 configured & working                    | User/Gemster | `~~Done~~` | Required v3 install; Editor linting workaround applied    |
-| T3  | ~~Set up Supabase project~~                                              | Supabase project created on supabase.io             | User        | `~~Done~~` | New project created for Bills Tracker                         |
-| T4  | ~~Create `.env` file & add Supabase keys~~                               | `.env` file populated with *new* project keys       | User        | `~~Done~~` | Keys for the correct project added & file untracked       |
-| T5  | ~~Install `@supabase/supabase-js`~~                                      | Dependency added to `package.json`                  | User        | `~~Done~~` | Installed via `npm install` (after identifying missing)     |
-| T6  | ~~Create Supabase client utility (`src/lib/supabaseClient.ts`)~~         | `supabaseClient.ts` file with exported client       | Gemster/User | `~~Done~~` | File created, code added, TS error resolved                 |
-| T7  | Implement basic Auth components (Login, Signup forms, Logout button)     | TSX components (`LoginForm.tsx`, `SignupForm.tsx`)  | Gemster     | To Do      | **Proposed Next Task** |
-| T8  | Implement basic protected routing                                        | Routing setup code (`App.tsx` or routing file)      | Gemster     | To Do      | Depends on T7; Requires `react-router-dom` (installed)      |
-| T9  | Define & Create Supabase tables (`income_events`, `bill_events` - MVP) | SQL script for table creation; RLS policies enabled | Gemster     | To Do      | MVP schema; Non-recurring fields first                        |
-| T10 | Install FullCalendar & plugins                                         | Dependencies added (`@fullcalendar/react`, etc.)    | User        | To Do      | e.g., `npm install @fullcalendar/react @fullcalendar/daygrid` |
-| T11 | Create basic Calendar view component (`CalendarView.tsx`)                | TSX component rendering an empty FullCalendar       | Gemster     | To Do      | Depends on T10                                                |
-| T12 | Create `AddIncomeForm.tsx` component shell                             | TSX component with basic form fields (UI only)      | Gemster     | To Do      |                                                               |
-| T13 | Create `AddBillForm.tsx` component shell                               | TSX component with basic form fields (UI only)      | Gemster     | To Do      |                                                               |
+| ID  | Title                                                                    | Expected Output                                     | Assignee    | Status     | Notes                                                           |
+| :-: | :----------------------------------------------------------------------- | :-------------------------------------------------- | :---------- | :--------- | :-------------------------------------------------------------- |
+| T1  | ~~Initialize Vite + React + TS project~~                                 | Working project folder                              | User        | `~~Done~~` | Completed on Mac & Windows                                      |
+| T2  | ~~Install & Configure Tailwind CSS~~                                     | Tailwind v3 configured & working                    | User/Gemster | `~~Done~~` | Required v3 install; Editor linting workaround applied      |
+| T3  | ~~Set up Supabase project~~                                              | Supabase project created on supabase.io             | User        | `~~Done~~` | New project created for Bills Tracker                           |
+| T4  | ~~Create `.env` file & add Supabase keys~~                               | `.env` file populated with *new* project keys       | User        | `~~Done~~` | Keys for the correct project added & file untracked         |
+| T5  | ~~Install `@supabase/supabase-js`~~                                      | Dependency added to `package.json`                  | User        | `~~Done~~` | Installed via `npm install`                                     |
+| T6  | ~~Create Supabase client utility (`src/lib/supabaseClient.ts`)~~         | `supabaseClient.ts` file with exported client       | Gemster/User | `~~Done~~` | File created, code added, TS error resolved                   |
+| T7  | ~~Implement basic Auth components (Login, Signup forms, Logout button)~~ | Functional Login/Signup forms, Logout               | Gemster/User | `~~Done~~` | Basic structure, state, Supabase calls implemented          |
+| T8  | ~~Implement basic protected routing~~                                    | Protected route component, routes defined in App.tsx | Gemster/User | `~~Done~~` | `BrowserRouter`, `<Routes>`, `<Route>`, `ProtectedRoute` setup |
+| T9  | ~~Define & Create Supabase tables (`income_events`, `bill_events`)~~     | Tables created in Supabase with RLS                 | Gemster/User | `~~Done~~` | Initial MVP schema                                              |
+| T10 | ~~Install FullCalendar & plugins~~                                       | Dependencies added (`@fullcalendar/react`, etc.)    | User        | `~~Done~~` | Installed `react`, `daygrid`                                |
+| T11 | ~~Create basic Calendar view component (`CalendarView.tsx`)~~            | Component renders calendar with events & hover cards | Gemster/User | `~~Done~~` | Fetches/displays data, hover uses Floating UI               |
+| T12 | ~~Implement `AddIncomeForm.tsx` component~~                              | Form adds data to Supabase, includes autocomplete    | Gemster/User | `~~Done~~` | Includes Supabase insert logic                              |
+| T13 | ~~Implement `AddBillForm.tsx` component~~                                | Form adds data to Supabase, includes autocomplete    | Gemster/User | `~~Done~~` | Includes Supabase insert logic                              |
+| T14 | Create `allocations` table                                               | Table created in Supabase with RLS                 | Gemster/User | `~~Done~~` | Schema for linking income to bills                          |
+| T15 | Implement Allocation UI/Logic                                            | UI for linking income to bills, saves to DB         | Gemster     | To Do      | **Proposed Next Task** (e.g., Click event -> Modal)           |
 
 *Implicit Tasks Completed:*
-* *Cross-platform environment setup & troubleshooting (Git, Volta, Node versions).*
-* *Git history cleanup for accidentally committed `.env` (local & remote tracking).*
+* *Cross-platform environment setup & troubleshooting.*
+* *Git history cleanup for accidentally committed `.env`.*
 * *VS Code recommended extensions file created.*
-* *Basic page Layout component (`Layout.tsx`) created and integrated.*
+* *Basic page Layout component created and integrated.*
 * *Basic dark theme using KG iQ colors configured.*
-* *React Router Provider (`BrowserRouter`) set up.*
+* *Refactoring auth state logic from App to HomePage.*
+* *Refactoring hover card logic to use Floating UI.*
