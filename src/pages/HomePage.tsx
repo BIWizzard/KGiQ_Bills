@@ -1,7 +1,8 @@
-// src/pages/HomePage.tsx (Updated to include AddIncomeForm)
-import { useEffect, useState } from 'react'; 
+// src/pages/HomePage.tsx (Updated to include AddIncomeForm & AddBillForm)
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import AddIncomeForm from '../components/forms/AddIncomeForm'; // <-- 1. Import the form
+import AddIncomeForm from '../components/forms/AddIncomeForm'; // Existing import
+import AddBillForm from '../components/forms/AddBillForm';   // <-- 1. Import AddBillForm
 
 const HomePage = () => {
   const [currentUserEmail, setCurrentUserEmail] = useState<string | undefined>(undefined);
@@ -20,10 +21,10 @@ const HomePage = () => {
   };
 
   return (
-    // Main container for the welcome message + form
-    <div> 
+    // Main container now holds Welcome + Income Form + Bill Form
+    <div>
         {/* Box for welcome message */}
-        <div className="bg-white p-6 rounded shadow dark:bg-kg-gray mb-6"> {/* Added mb-6 for spacing */}
+        <div className="bg-white p-6 rounded shadow dark:bg-kg-gray mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-kg-green">
               Welcome! (Home Page)
@@ -42,12 +43,15 @@ const HomePage = () => {
           )}
 
           <p className="mt-4 text-sm text-gray-500 dark:text-kg-gray">
-            (The main application content, like the calendar, goes here.)
+            (This is where the main application content, like the calendar, will eventually go.)
           </p>
         </div>
 
-        {/* Render the AddIncomeForm below the welcome box */}
-        <AddIncomeForm />  {/* <-- 2. Add the form component here */}
+        {/* Render the AddIncomeForm */}
+        <AddIncomeForm />
+
+        {/* Render the AddBillForm below it */}
+        <AddBillForm />   {/* <-- 2. Add the bill form component here */}
 
     </div> // Closing tag for outer div
   );
