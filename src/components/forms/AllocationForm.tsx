@@ -1,23 +1,7 @@
 // src/components/forms/AllocationForm.tsx
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-
-// Define interfaces for the data we're working with
-interface BillEvent {
-  id: string;
-  payee: string;
-  due_date: string;
-  amount_due: number;
-  description?: string | null;
-}
-
-interface IncomeEvent {
-  id: string;
-  source: string;
-  expected_date: string;
-  expected_amount: number;
-  allocated_amount?: number; // Total already allocated from this income
-}
+import { formatCurrency, formatDate, BillStatus, BillEvent, IncomeEvent } from '../../types';
 
 interface AllocationFormProps {
   billEvent: BillEvent;
@@ -44,31 +28,17 @@ const AllocationForm: React.FC<AllocationFormProps> = ({
   const [formError, setFormError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Helper function for formatting currency
-  const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(amount);
-  };
-
-  // Helper to format dates
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
   // Calculate remaining unallocated amount for an income event
   const calculateRemainingAmount = (incomeEvent: IncomeEvent): number => {
     const allocatedAmount = incomeEvent.allocated_amount || 0;
     return incomeEvent.expected_amount - allocatedAmount;
   };
+
+  // Calculate bill remaining amount
+  const billRemainingAmount = billEvent.remaining_amount !== null && 
+                              billEvent.remaining_amount !== undefined ? 
+                              billEvent.remaining_amount : 
+                              billEvent.amount_due;
 
   // Fetch available income events
   useEffect(() => {
@@ -85,8 +55,6 @@ const AllocationForm: React.FC<AllocationFormProps> = ({
           .from('income_events')
           .select('id, source, expected_date, expected_amount')
           .eq('user_id', user.id)
-          // Typically we'd want to only show income events before or on the bill due date
-          // but for simplicity we'll show all income events initially
           .order('expected_date', { ascending: true });
           
         if (incomeError) throw incomeError;
@@ -173,9 +141,9 @@ const AllocationForm: React.FC<AllocationFormProps> = ({
       return;
     }
     
-    // Check if allocation amount exceeds bill amount
-    if (amount > billEvent.amount_due) {
-      setFormError(`Allocation exceeds bill amount (${formatCurrency(billEvent.amount_due)})`);
+    // Check if allocation amount exceeds bill remaining amount
+    if (amount > billRemainingAmount) {
+      setFormError(`Allocation exceeds bill remaining amount (${formatCurrency(billRemainingAmount)})`);
       setSubmitting(false);
       return;
     }
@@ -184,17 +152,15 @@ const AllocationForm: React.FC<AllocationFormProps> = ({
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) throw new Error(userError?.message || 'User not authenticated');
       
-      // Create allocation record
-      const { error: insertError } = await supabase
-        .from('allocations')
-        .insert([{
-          user_id: user.id,
-          income_event_id: selectedIncomeId,
-          bill_event_id: billEvent.id,
-          allocated_amount: amount
-        }]);
-        
-      if (insertError) throw insertError;
+      // Use the new stored procedure to create allocation and update bill status
+      const { error: rpcError } = await supabase.rpc('create_allocation_and_update_bill', {
+        p_user_id: user.id,
+        p_income_event_id: selectedIncomeId,
+        p_bill_event_id: billEvent.id,
+        p_allocated_amount: amount
+      });
+      
+      if (rpcError) throw rpcError;
       
       setSuccessMessage('Allocation created successfully!');
       
@@ -225,7 +191,27 @@ const AllocationForm: React.FC<AllocationFormProps> = ({
         <h4 className="font-medium text-gray-700 dark:text-kg-green mb-2">Bill Details:</h4>
         <p className="dark:text-kg-green2"><strong>Payee:</strong> {billEvent.payee}</p>
         <p className="dark:text-kg-green2"><strong>Due Date:</strong> {formatDate(billEvent.due_date)}</p>
-        <p className="dark:text-kg-green2"><strong>Amount Due:</strong> {formatCurrency(billEvent.amount_due)}</p>
+        <p className="dark:text-kg-green2"><strong>Total Amount:</strong> {formatCurrency(billEvent.amount_due)}</p>
+        
+        {/* New: Show bill status */}
+        <p className="dark:text-kg-green2">
+          <strong>Status:</strong> <span className={`px-2 py-0.5 text-xs rounded ${
+            billEvent.status === BillStatus.PAID ? 'bg-green-600 text-white' :
+            billEvent.status === BillStatus.SCHEDULED ? 'bg-yellow-500 text-gray-800' :
+            'bg-kg-wine text-white'
+          }`}>{billEvent.status || BillStatus.UNPAID}</span>
+        </p>
+        
+        {/* New: Show remaining amount if it's different from the total */}
+        {billRemainingAmount !== billEvent.amount_due && (
+          <p className="dark:text-kg-green2">
+            <strong>Remaining:</strong> {formatCurrency(billRemainingAmount)}
+            <span className="ml-1 text-xs text-gray-600 dark:text-kg-ash">
+              ({Math.round(((billEvent.amount_due - billRemainingAmount) / billEvent.amount_due) * 100)}% covered)
+            </span>
+          </p>
+        )}
+        
         {billEvent.description && (
           <p className="dark:text-kg-green2"><strong>Description:</strong> {billEvent.description}</p>
         )}
@@ -325,12 +311,12 @@ const AllocationForm: React.FC<AllocationFormProps> = ({
             {selectedIncomeId && (
               <div className="mt-1 text-xs text-gray-500 dark:text-kg-ash">
                 <p>
-                  {/* Show remaining amount if income is selected */}
+                  {/* Show relevant amounts */}
                   {(() => {
                     const selectedIncome = incomeEvents.find(income => income.id === selectedIncomeId);
                     if (selectedIncome) {
-                      const remainingAmount = calculateRemainingAmount(selectedIncome);
-                      return `Available: ${formatCurrency(remainingAmount)} | Bill Amount: ${formatCurrency(billEvent.amount_due)}`;
+                      const remainingIncomeAmount = calculateRemainingAmount(selectedIncome);
+                      return `Income Available: ${formatCurrency(remainingIncomeAmount)} | Bill Remaining: ${formatCurrency(billRemainingAmount)}`;
                     }
                     return null;
                   })()}
@@ -338,6 +324,44 @@ const AllocationForm: React.FC<AllocationFormProps> = ({
               </div>
             )}
           </div>
+          
+          {/* Quick actions for allocation amount */}
+          {selectedIncomeId && (
+            <div className="mb-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const selectedIncome = incomeEvents.find(income => income.id === selectedIncomeId);
+                  if (selectedIncome) {
+                    const remainingIncomeAmount = calculateRemainingAmount(selectedIncome);
+                    const amount = Math.min(remainingIncomeAmount, billRemainingAmount);
+                    setAllocationAmount(amount.toFixed(2));
+                  }
+                }}
+                className="px-2 py-1 text-xs bg-gray-200 text-gray-800 rounded hover:bg-gray-300 dark:bg-kg-ash/50 dark:text-kg-green2 dark:hover:bg-kg-ash/70"
+              >
+                Max Amount
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAllocationAmount(billRemainingAmount.toFixed(2));
+                }}
+                className="px-2 py-1 text-xs bg-gray-200 text-gray-800 rounded hover:bg-gray-300 dark:bg-kg-ash/50 dark:text-kg-green2 dark:hover:bg-kg-ash/70"
+              >
+                Full Bill Remaining
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAllocationAmount((billRemainingAmount / 2).toFixed(2));
+                }}
+                className="px-2 py-1 text-xs bg-gray-200 text-gray-800 rounded hover:bg-gray-300 dark:bg-kg-ash/50 dark:text-kg-green2 dark:hover:bg-kg-ash/70"
+              >
+                Half Bill Remaining
+              </button>
+            </div>
+          )}
           
           {/* Form Error */}
           {formError && (

@@ -1,0 +1,49 @@
+erDiagram
+    users {
+        uuid id PK
+        timestamp created_at
+        string email
+    }
+    
+    income_events {
+        uuid id PK
+        timestamp created_at
+        uuid user_id FK
+        string source
+        date expected_date
+        decimal expected_amount
+        boolean is_recurring
+        string notes
+    }
+    
+    bill_events {
+        uuid id PK
+        timestamp created_at
+        uuid user_id FK
+        string payee
+        string description
+        date due_date
+        decimal amount_due
+        boolean is_recurring
+        string payment_method
+        string notes
+        string status "unpaid, scheduled, paid, canceled"
+        decimal remaining_amount
+    }
+    
+    allocations {
+        uuid id PK
+        timestamp created_at
+        uuid user_id FK
+        uuid income_event_id FK
+        uuid bill_event_id FK
+        decimal allocated_amount
+        date scheduled_date "NEW FIELD"
+        string status "pending, paid, canceled (NEW FIELD)"
+    }
+    
+    users ||--o{ income_events : "creates"
+    users ||--o{ bill_events : "creates"
+    users ||--o{ allocations : "creates"
+    income_events ||--o{ allocations : "funds"
+    bill_events ||--o{ allocations : "receives"
