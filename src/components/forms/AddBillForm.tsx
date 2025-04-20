@@ -1,6 +1,7 @@
 // src/components/forms/AddBillForm.tsx
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabaseClient'; // Adjust path if needed
+import { supabase } from '../../lib/supabaseClient';
+import { BillStatus } from '../../types';
 
 const AddBillForm: React.FC = () => {
   // State for bill fields
@@ -10,6 +11,7 @@ const AddBillForm: React.FC = () => {
   const [amountDue, setAmountDue] = useState<string>(''); // HTML number input gives string
   const [paymentMethod, setPaymentMethod] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
+  const [status, setStatus] = useState<string>(BillStatus.UNPAID);
 
   // State for distinct payees
   const [payeeOptions, setPayeeOptions] = useState<string[]>([]);
@@ -30,7 +32,7 @@ const AddBillForm: React.FC = () => {
         if (data) {
           setPayeeOptions(data.map((item: { payee: string }) => item.payee));
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error fetching bill payees:", error);
       } finally {
         setLoadingPayees(false);
@@ -58,7 +60,6 @@ const AddBillForm: React.FC = () => {
         return;
     }
 
-
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -71,7 +72,8 @@ const AddBillForm: React.FC = () => {
         amount_due: amount,
         payment_method: paymentMethod || null,
         notes: notes || null,
-        // is_recurring defaults to false in DB
+        status: status,
+        // remaining_amount will be set by database trigger to match amount_due initially
       };
 
       const { error: insertError } = await supabase
@@ -92,9 +94,11 @@ const AddBillForm: React.FC = () => {
       setAmountDue('');
       setPaymentMethod('');
       setNotes('');
+      setStatus(BillStatus.UNPAID);
 
-    } catch (error: any) {
-      setError(`Failed to add bill event: ${error.message || 'Unknown error'}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      setError(`Failed to add bill event: ${errorMessage}`);
       console.error('Error adding bill event:', error);
     } finally {
       setLoading(false);
@@ -174,7 +178,26 @@ const AddBillForm: React.FC = () => {
           />
         </div>
 
-         {/* Payment Method Input */}
+        {/* Status Selection - New */}
+        <div className="mb-4">
+          <label htmlFor="bill-status" className="block text-sm font-medium text-gray-700 dark:text-kg-green2 mb-1">Status</label>
+          <select
+            id="bill-status"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            disabled={loading}
+            className="w-full px-3 py-2 border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-kg-blue/50 focus:border-kg-blue dark:bg-kg-ash2/50 dark:border-kg-ash/50 dark:text-kg-green2"
+          >
+            <option value={BillStatus.UNPAID}>Unpaid</option>
+            <option value={BillStatus.SCHEDULED}>Scheduled</option>
+            <option value={BillStatus.PAID}>Paid</option>
+          </select>
+          <p className="text-xs text-gray-500 dark:text-kg-ash mt-1">
+            This will automatically update when allocations are made.
+          </p>
+        </div>
+
+        {/* Payment Method Input */}
         <div className="mb-4">
           <label htmlFor="payment-method" className="block text-sm font-medium text-gray-700 dark:text-kg-green2 mb-1">Payment Method (Optional)</label>
           <input

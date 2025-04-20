@@ -1,4 +1,4 @@
-// src/components/calendar/CalendarView.tsx (Updated with onAllocationChange)
+// src/components/calendar/CalendarView.tsx
 import React, { useState, useEffect } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
@@ -8,6 +8,7 @@ import { supabase } from '../../lib/supabaseClient';
 import IncomeEventCard from '../cards/IncomeEventCard';
 import BillEventCard from '../cards/BillEventCard';
 import AllocationModal from '../modals/AllocationModal';
+import { getCalendarEventColors, BillStatus, BillEvent, IncomeEvent } from '../../types';
 
 // Import Floating UI hooks and utils
 import {
@@ -17,10 +18,6 @@ import {
     flip,
     shift,
 } from '@floating-ui/react';
-
-// Interfaces for Supabase data
-interface IncomeEvent { id: string; source: string; expected_date: string; expected_amount: number; notes?: string | null; }
-interface BillEvent { id: string; payee: string; due_date: string; amount_due: number; description?: string | null; payment_method?: string | null; notes?: string | null; }
 
 // Define props for the component
 interface CalendarViewProps {
@@ -57,6 +54,19 @@ const CalendarView: React.FC<CalendarViewProps> = ({ onAllocationChange }) => {
         };
     }, []);
 
+    // Function to get status icon/indicator
+    const getStatusIndicator = (status?: string): string => {
+        switch (status) {
+            case BillStatus.PAID:
+                return '✓ '; // Checkmark for paid
+            case BillStatus.SCHEDULED:
+                return '◑ '; // Half circle for partially paid/scheduled
+            case BillStatus.UNPAID:
+            default:
+                return ''; // No indicator for unpaid
+        }
+    };
+
     // Function to fetch events (extracted from useEffect for reusability)
     const fetchEvents = async () => {
         setLoading(true); 
@@ -73,10 +83,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({ onAllocationChange }) => {
                 .eq('user_id', userId);
             if (incomeError) throw incomeError;
             
-            // Fetch bill events
+            // Fetch bill events with new status and remaining_amount fields
             const { data: billData, error: billError } = await supabase
                 .from('bill_events')
-                .select('id, payee, due_date, amount_due, description, payment_method, notes')
+                .select('id, payee, due_date, amount_due, description, payment_method, notes, status, remaining_amount')
                 .eq('user_id', userId);
             if (billError) throw billError;
             
@@ -91,15 +101,25 @@ const CalendarView: React.FC<CalendarViewProps> = ({ onAllocationChange }) => {
                 extendedProps: { type: 'income', ...event } 
             }));
             
-            const formattedBillEvents: EventInput[] = (billData || []).map((event: BillEvent) => ({ 
-                id: `bill-${event.id}`, 
-                title: `-${formatCurrencyMemo(event.amount_due)} (${event.payee})`, 
-                start: event.due_date, 
-                backgroundColor: '#733041', 
-                borderColor: '#5f2735', 
-                textColor: '#ffffff', 
-                extendedProps: { type: 'bill', ...event } 
-            }));
+            // Format bill events with status-based colors
+            const formattedBillEvents: EventInput[] = (billData || []).map((event: BillEvent) => {
+                // Get colors based on status
+                const colors = getCalendarEventColors(event.status || BillStatus.UNPAID);
+                
+                // Create title with status indicator
+                const titlePrefix = getStatusIndicator(event.status);
+                const title = `${titlePrefix}-${formatCurrencyMemo(event.amount_due)} (${event.payee})`;
+                
+                return { 
+                    id: `bill-${event.id}`, 
+                    title: title, 
+                    start: event.due_date, 
+                    backgroundColor: colors.backgroundColor, 
+                    borderColor: colors.borderColor, 
+                    textColor: colors.textColor, 
+                    extendedProps: { type: 'bill', ...event } 
+                };
+            });
             
             setEvents([...formattedIncomeEvents, ...formattedBillEvents]);
         } catch (error: unknown) {
@@ -137,8 +157,15 @@ const CalendarView: React.FC<CalendarViewProps> = ({ onAllocationChange }) => {
         if (info.event.extendedProps?.type === 'bill') {
             // Extract the bill event data from extendedProps
             const billEventData = info.event.extendedProps as BillEvent;
-            setSelectedBillEvent(billEventData);
-            setIsAllocationModalOpen(true);
+            
+            // Only allow allocations for unpaid or partially paid bills
+            if (billEventData.status !== BillStatus.PAID) {
+                setSelectedBillEvent(billEventData);
+                setIsAllocationModalOpen(true);
+            } else {
+                // Optional: Show a message that paid bills can't receive more allocations
+                console.log('This bill is already fully paid.');
+            }
         }
         
         // For income events, we could do something else, or nothing
